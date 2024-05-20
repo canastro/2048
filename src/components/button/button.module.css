@@ -1,0 +1,19 @@
+.root {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--accent-color-light);
+    padding-block: var(--space-3);
+    padding-inline: var(--space-5);
+    border-radius: var(--radius-2);
+    font-size: var(--font-size-6);
+    line-height: var(--line-height-6);
+    letter-spacing: var(--letter-spacing-6);
+    font-weight: var(--font-weight-medium);
+}
+
+.root:hover {
+    background-color: var(--accent-color-dark);
+    color: var(--text-color-light);
+}

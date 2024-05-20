@@ -1,0 +1,99 @@
+.heading {
+  font-family: var(--heading-font-family);
+  font-style: var(--heading-font-style);
+  font-weight: var(--font-weight-bold);
+}
+
+.heading-weight-light {
+  font-weight: var(--font-weight-light);
+}
+
+.heading-weight-regular {
+  font-weight: var(--font-weight-regular);
+}
+
+.heading-weight-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.heading-weight-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+.heading-size-1 {
+  font-size: var(--font-size-1);
+  line-height: var(--heading-line-height-1);
+  letter-spacing: calc(var(--letter-spacing-1) + var(--heading-letter-spacing));
+}
+
+.heading-size-2 {
+  font-size: var(--font-size-2);
+  line-height: var(--heading-line-height-2);
+  letter-spacing: calc(var(--letter-spacing-2) + var(--heading-letter-spacing));
+}
+
+.heading-size-3 {
+  font-size: var(--font-size-3);
+  line-height: var(--heading-line-height-3);
+  letter-spacing: calc(var(--letter-spacing-3) + var(--heading-letter-spacing));
+}
+
+.heading-size-4 {
+  font-size: var(--font-size-4);
+  line-height: var(--heading-line-height-4);
+  letter-spacing: calc(var(--letter-spacing-4) + var(--heading-letter-spacing));
+}
+
+.heading-size-5 {
+  font-size: var(--font-size-5);
+  line-height: var(--heading-line-height-5);
+  letter-spacing: calc(var(--letter-spacing-5) + var(--heading-letter-spacing));
+}
+
+.heading-size-6 {
+  font-size: var(--font-size-6);
+  line-height: var(--heading-line-height-6);
+  letter-spacing: calc(var(--letter-spacing-6) + var(--heading-letter-spacing));
+}
+
+.heading-size-7 {
+  font-size: calc(var(--font-size-7) * var(--heading-font-size-adjust));
+  line-height: calc(
+    var(--heading-line-height-7) * var(--heading-font-size-adjust)
+  );
+  letter-spacing: calc(var(--letter-spacing-7) + var(--heading-letter-spacing));
+}
+
+.heading-size-8 {
+  font-size: calc(var(--font-size-8) * var(--heading-font-size-adjust));
+  line-height: calc(
+    var(--heading-line-height-8) * var(--heading-font-size-adjust)
+  );
+  letter-spacing: calc(var(--letter-spacing-8) + var(--heading-letter-spacing));
+}
+
+.heading-size-9 {
+  font-size: calc(var(--font-size-9) * var(--heading-font-size-adjust));
+  line-height: calc(
+    var(--heading-line-height-9) * var(--heading-font-size-adjust)
+  );
+  letter-spacing: calc(var(--letter-spacing-9) + var(--heading-letter-spacing));
+}
+
+@media screen and (max-width: 1024px) {
+  .heading {
+    --heading-font-size-adjust: 0.9;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .heading {
+    --heading-font-size-adjust: 0.8;
+  }
+}
+
+@media screen and (max-width: 478px) {
+  .heading {
+    --heading-font-size-adjust: 0.7;
+  }
+}

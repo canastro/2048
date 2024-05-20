@@ -1,0 +1,30 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+.board {
+  position: relative;
+  margin-inline: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--size), 56px);
+  grid-template-rows: repeat(var(--size), 56px);
+  gap: 4px;
+}
+
+.tiles {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+}
+
+.cell {
+  background-color: var(--accent-color-light);
+  border-radius: var(--radius-1);
+}
