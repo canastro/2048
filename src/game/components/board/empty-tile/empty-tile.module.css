@@ -1,0 +1,4 @@
+.tile {
+  background-color: var(--accent-color-light);
+  border-radius: var(--radius-1);
+}

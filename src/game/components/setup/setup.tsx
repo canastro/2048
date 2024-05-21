@@ -3,7 +3,7 @@ import { Text } from "../../../components/text/text";
 import { Button } from "../../../components/button/button";
 import styles from "./setup.module.css";
 import { useState } from "react";
-import { MAX_NUMBER_OBSTACLES } from "../../constants";
+import { MAX_NUMBER_OBSTACLES } from "../../utils/constants";
 import { GameOptions } from "../../engine/game-options";
 
 const OBSTACLES = new Array(MAX_NUMBER_OBSTACLES).fill(null).map((_, i) => ({
@@ -35,7 +35,6 @@ export function Setup(props: SetupProps) {
           options={GRID_SIZES}
           value={size}
           onChange={(value: number) => {
-            console.log("value", value);
             if (!value) return;
             setSize(value);
           }}

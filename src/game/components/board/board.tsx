@@ -1,31 +1,33 @@
-import { useCallback, useContext, useEffect, useMemo } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { Tile as ITile } from "../../models/tile";
 import styles from "./board.module.css";
 import Tile from "../tile/tile";
-import { TILE_GAP, TILE_SIZE } from "../../constants";
+import { TILE_GAP, TILE_SIZE } from "../../utils/constants";
 import { GameEngineContext } from "../../engine/game-engine";
 import { Direction } from "../../models/direction";
 import { Button } from "../../../components/button/button";
+import { Board as IBoard } from "../../models/board";
+import { EmptyTile } from "./empty-tile/empty-tile";
+import ObstacleTile from "./obstacle-tile/obstacle-tile";
 
 interface BoardProps {
   onReset: () => void;
 }
 
 interface GridProps {
-  size: number;
+  board: IBoard;
 }
 
 function Grid(props: GridProps) {
-  const cells: JSX.Element[] = useMemo(() => {
-    const totalCellsCount = props.size * props.size;
-    console.log("totalCellsCount", props.size, totalCellsCount);
+  const flatBoard = props.board.flat();
 
-    return new Array(totalCellsCount)
-      .fill(null)
-      .map((_, index) => <div className={styles.cell} key={index} />);
-  }, [props.size]);
-
-  return cells;
+  return flatBoard.map((item, index) =>
+    item.type === "obstacle" ? (
+      <ObstacleTile key={index} />
+    ) : (
+      <EmptyTile key={index} />
+    )
+  );
 }
 
 function Tiles() {
@@ -36,7 +38,16 @@ function Tiles() {
 }
 
 export function Board(props: BoardProps) {
-  const { options, move } = useContext(GameEngineContext);
+  const initialized = useRef(false);
+
+  const { options, move, board, startGame } = useContext(GameEngineContext);
+
+  useEffect(() => {
+    if (initialized.current === false) {
+      startGame();
+      initialized.current = true;
+    }
+  }, [startGame]);
 
   const boardSize = useMemo(() => {
     const tilesSize = options.size * TILE_SIZE;
@@ -88,7 +99,7 @@ export function Board(props: BoardProps) {
         </div>
 
         <div className={styles.grid}>
-          <Grid size={options.size} />
+          <Grid board={board} />
         </div>
       </div>
 

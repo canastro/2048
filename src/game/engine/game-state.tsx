@@ -1,9 +1,9 @@
+import { Board, BoardItem } from "../models/board";
 import { isSameCoordinate } from "../models/coordinate";
 import { Direction } from "../models/direction";
 import { Tile } from "../models/tile";
+import { generateRandomCoordinate, getEmptyCells } from "../utils/position";
 import { GameOptions } from "./game-options";
-
-type Board = string[][];
 
 type State = {
   hasChanged: boolean;
@@ -14,83 +14,192 @@ type State = {
 
 type Action =
   | { type: "create_tile"; tile: Tile }
-  | { type: "set_options"; options: GameOptions }
-  | { type: "reset" }
   | { type: "move"; direction: Direction };
 
 /**
  * Create an empty board of size state.options.size x state.options.size
+ * with the randomly placed obstacles.
  */
-function createBoard(options: GameOptions) {
-  return new Array(options.size)
+function createNewBoard(options: GameOptions): Board {
+  const board = new Array(options.size)
     .fill(undefined)
-    .map(() => new Array(options.size).fill(undefined));
+    .map(() => new Array(options.size).fill({ type: "empty" }));
+
+  for (let i = 0; i < options.nObstacles; i++) {
+    const emptyCells = getEmptyCells(board, options.size);
+    const coordinate = generateRandomCoordinate(emptyCells);
+    board[coordinate.x][coordinate.y] = { type: "obstacle" };
+  }
+
+  return board;
 }
+
+/**
+ * Generates a clean board keeping the existing obstacles.
+ */
+const getCleanBoard = (board: Board): Board => {
+  const newBoard = clone(board);
+  return newBoard.map((row) =>
+    row.map((item) => (item.type === "tile" ? { type: "empty" } : item))
+  );
+};
 
 export const createInitialGameState = (options: GameOptions): State => ({
   options,
   hasChanged: false,
-  board: createBoard(options),
+  board: createNewBoard(options),
   tiles: {},
 });
 
-const clone = (board: Board) => JSON.parse(JSON.stringify(board));
+const clone = (board: Board): Board => JSON.parse(JSON.stringify(board));
+
+const _move = (
+  tiles: Record<string, Tile>,
+  data: BoardItem[],
+  options: { offset: number; direction: "start" | "end"; axis: "x" | "y" }
+) => {
+  // Transform the array to implement the logic to always move to the start,
+  let hasChanged = false;
+  const items = options.direction === "start" ? data : data.slice().reverse();
+  const increment = options.direction === "start" ? 1 : -1;
+  const offset = options.offset;
+
+  let currentOpenPosition = options.direction === "start" ? 0 : data.length - 1;
+  let previousTile: Tile | undefined;
+  const updatedTiles: Record<string, Tile> = {};
+
+  items.forEach((boardItem) => {
+    if (boardItem.type !== "tile") return;
+    const tileId = boardItem.id;
+    const currentTile = tiles[tileId];
+    if (!currentTile) return;
+
+    // merge if the current tile has the same value as the previous tile
+    if (currentTile && currentTile.value === previousTile?.value) {
+      updatedTiles[previousTile.id] = {
+        ...previousTile,
+        value: previousTile.value * 2,
+      };
+      updatedTiles[tileId] = {
+        ...currentTile,
+        coordinate: {
+          ...currentTile.coordinate,
+          [options.axis]: offset + currentOpenPosition + increment * -1,
+        },
+      };
+      previousTile = undefined;
+      hasChanged = true;
+      return;
+    }
+
+    // move tile to the top
+    const newCoordinate = {
+      ...currentTile.coordinate,
+      [options.axis]: offset + currentOpenPosition,
+    };
+    updatedTiles[tileId] = { ...currentTile, coordinate: newCoordinate };
+
+    if (!isSameCoordinate(currentTile.coordinate, newCoordinate)) {
+      hasChanged = true;
+    }
+
+    // update aux data for next iteration
+    previousTile =  updatedTiles[tileId];
+    currentOpenPosition += increment;
+  });
+
+  return [hasChanged, updatedTiles] as const;
+};
+
+export const createRanges = (data: BoardItem[]) => {
+  const ranges: [number, number][] = [];
+  for (let i = 0; i < data.length; i++) {
+    const currentItem = data[i];
+    if (currentItem.type === "obstacle") {
+      continue;
+    }
+
+    ranges.push([i, i]);
+
+    for (let j = i + 1; j < data.length; j++) {
+      i = j;
+      if (data[j].type === "obstacle") {
+        break;
+      }
+
+      ranges[ranges.length - 1][1] = j;
+    }
+  }
+  return ranges;
+};
+
+/**
+ * Given a single row/column of the board, produce the tiles changes
+ * for the current movement.
+ */
+export const move = (
+  tiles: Record<string, Tile>,
+  data: BoardItem[],
+  options: { direction: "start" | "end"; axis: "x" | "y" }
+) => {
+  const ranges = createRanges(data);
+  let newTiles: Record<string, Tile> = {};
+  let hasChanged = false;
+  ranges.forEach(([start, end]) => {
+    const [changed, updatedTiles] = _move(tiles, data.slice(start, end + 1), {
+      ...options,
+      offset: start,
+    });
+    hasChanged = hasChanged || changed;
+    newTiles = { ...newTiles, ...updatedTiles };
+  });
+
+  return [hasChanged, newTiles] as const;
+};
+
+/**
+ * Updates the board with the new tiles.
+ */
+export const updateBoard = (
+  board: Board,
+  previousTiles: Record<string, Tile>,
+  tiles: Record<string, Tile>
+) => {
+  const newBoard = clone(board);
+  Object.values(tiles).forEach((tile) => {
+    const currentBoardItem = newBoard[tile.coordinate.y][tile.coordinate.x];
+    const currentTile =
+      currentBoardItem.type === "tile" ? previousTiles[tile.id] : undefined;
+
+    if (!currentTile || tile.value > currentTile.value) {
+      newBoard[tile.coordinate.y][tile.coordinate.x] = {
+        type: "tile",
+        id: tile.id,
+      };
+    }
+  });
+
+  return newBoard;
+};
 
 const moveVertically = (
   state: State,
   direction: Direction.Up | Direction.Down
 ) => {
-  const multiplier = direction === Direction.Up ? 1 : -1;
-
-  const yRange =
-    direction === Direction.Up
-      ? [0, state.options.size]
-      : [state.options.size - 1, -1];
-
   let hasChanged = false;
-  const newBoard = createBoard(state.options);
-  const newTiles: Record<string, Tile> = {};
+  let newBoard = getCleanBoard(state.board);
+  let newTiles: Record<string, Tile> = {};
 
   for (let x = 0; x < state.options.size; x++) {
-    let newY = yRange[0];
-    let previousTile: Tile | undefined;
+    const [changes, updatedTiles] = move(
+      state.tiles,
+      state.board.map((rows) => rows[x]),
+      { direction: direction === Direction.Up ? "start" : "end", axis: "y" }
+    );
 
-    for (let y = yRange[0]; y !== yRange[1]; y += multiplier) {
-      const tileId = state.board[y][x];
-      const currentTile = state.tiles[tileId];
-
-      // skip if there is no tile
-      if (!currentTile) {
-        continue;
-      }
-
-      // merge if the current tile has the same value as the previous tile
-      if (currentTile && currentTile.value === previousTile?.value) {
-        newTiles[previousTile.id] = {
-          ...previousTile,
-          value: previousTile.value * 2,
-        };
-        newTiles[tileId] = {
-          ...currentTile,
-          coordinate: { x, y: newY + multiplier * -1 },
-        };
-        previousTile = undefined;
-        hasChanged = true;
-        continue;
-      }
-
-      // move the tile to the top
-      const newCoordinate = { x, y: newY };
-      newBoard[newY][x] = tileId;
-      newTiles[tileId] = { ...currentTile, coordinate: newCoordinate };
-      previousTile = newTiles[tileId];
-
-      if (!isSameCoordinate(currentTile.coordinate, newCoordinate)) {
-        hasChanged = true;
-      }
-
-      newY += multiplier;
-    }
+    hasChanged = hasChanged || changes;
+    newTiles = { ...newTiles, ...updatedTiles };
+    newBoard = updateBoard(newBoard, state.tiles, updatedTiles);
   }
 
   return {
@@ -105,57 +214,19 @@ const moveHorizontally = (
   state: State,
   direction: Direction.Left | Direction.Right
 ) => {
-  const multiplier = direction === Direction.Left ? 1 : -1;
-
-  const xRange =
-    direction === Direction.Left
-      ? [0, state.options.size]
-      : [state.options.size - 1, -1];
-
   let hasChanged = false;
-  const newBoard = createBoard(state.options);
-  const newTiles: Record<string, Tile> = {};
+  let newBoard = getCleanBoard(state.board);
+  let newTiles: Record<string, Tile> = {};
 
   for (let y = 0; y < state.options.size; y++) {
-    let newX = xRange[0];
-    let previousTile: Tile | undefined;
+    const [changes, updatedTiles] = move(state.tiles, state.board[y], {
+      direction: direction === Direction.Left ? "start" : "end",
+      axis: "x",
+    });
 
-    for (let x = xRange[0]; x !== xRange[1]; x += multiplier) {
-      const tileId = state.board[y][x];
-      const currentTile = state.tiles[tileId];
-
-      // skip if there is no tile
-      if (!currentTile) {
-        continue;
-      }
-
-      // merge if the current tile has the same value as the previous tile
-      if (currentTile && currentTile.value === previousTile?.value) {
-        newTiles[previousTile.id] = {
-          ...previousTile,
-          value: previousTile.value * 2,
-        };
-        newTiles[tileId] = {
-          ...currentTile,
-          coordinate: { y, x: newX + multiplier * -1 },
-        };
-        previousTile = undefined;
-        hasChanged = true;
-        continue;
-      }
-
-      // move the tile to the top
-      const newCoordinate = { y, x: newX };
-      newBoard[y][newX] = tileId;
-      newTiles[tileId] = { ...currentTile, coordinate: newCoordinate };
-      previousTile = newTiles[tileId];
-
-      if (!isSameCoordinate(currentTile.coordinate, newCoordinate)) {
-        hasChanged = true;
-      }
-
-      newX += multiplier;
-    }
+    hasChanged = hasChanged || changes;
+    newTiles = { ...newTiles, ...updatedTiles };
+    newBoard = updateBoard(newBoard, state.tiles, updatedTiles);
   }
 
   return {
@@ -168,13 +239,10 @@ const moveHorizontally = (
 
 export default function gameStateReducer(state: State, action: Action) {
   switch (action.type) {
-    case "reset":
-      return createInitialGameState(state.options);
-
     case "create_tile": {
       const { id, coordinate } = action.tile;
       const newBoard = clone(state.board);
-      newBoard[coordinate.y][coordinate.x] = id;
+      newBoard[coordinate.y][coordinate.x] = { type: "tile", id };
 
       return {
         ...state,
@@ -199,9 +267,6 @@ export default function gameStateReducer(state: State, action: Action) {
           return state;
       }
     }
-
-    case "set_options":
-      return createInitialGameState(action.options);
 
     default:
       return state;

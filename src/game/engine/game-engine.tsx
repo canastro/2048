@@ -1,18 +1,11 @@
-import {
-  PropsWithChildren,
-  createContext,
-  useCallback,
-  useEffect,
-  useReducer,
-  useState,
-} from "react";
+import { createContext, useCallback, useEffect, useReducer } from "react";
 import { Tile } from "../models/tile";
 import gameStateReducer, { createInitialGameState } from "./game-state";
 import { Coordinate } from "../models/coordinate";
 import { Direction } from "../models/direction";
 import { GameOptions } from "./game-options";
-
-type GameStatus = "setup" | "playing";
+import { generateRandomCoordinate, getEmptyCells } from "../utils/position";
+import { Board } from "../models/board";
 
 const DEFAULT_OPTIONS: GameOptions = {
   nObstacles: 0,
@@ -21,82 +14,57 @@ const DEFAULT_OPTIONS: GameOptions = {
 
 interface GameEngineContextValue {
   options: GameOptions;
-  status: GameStatus;
+  board: Board;
   hasChanged: boolean;
-  resetGame: () => void;
-  startGame: (options: GameOptions) => void;
   move: (direction: Direction) => void;
   getTiles: () => Tile[];
+  startGame: () => void;
 }
 
 export const GameEngineContext = createContext<GameEngineContextValue>({
   options: DEFAULT_OPTIONS,
-  status: "setup",
   hasChanged: false,
-  resetGame: () => {},
+  board: [],
   move: () => {},
-  startGame: () => {},
   getTiles: () => [],
+  startGame: () => {},
 });
 
-export function GameEngineProvider({ children }: PropsWithChildren) {
-  const [status, setStatus] = useState<GameStatus>("setup");
+interface GameEngineProviderProps {
+  children: React.ReactNode;
+  options: GameOptions;
+}
+
+export function GameEngineProvider({
+  children,
+  options,
+}: GameEngineProviderProps) {
   const [gameState, dispatch] = useReducer(
     gameStateReducer,
-    createInitialGameState(DEFAULT_OPTIONS)
+    createInitialGameState(options)
   );
 
   const getTiles = () => Object.values(gameState.tiles);
 
-  const appendRandomTile = useCallback(() => {
-    const getEmptyCells = () => {
-      const results: Coordinate[] = [];
-
-      for (let x = 0; x < gameState.options.size; x++) {
-        for (let y = 0; y < gameState.options.size; y++) {
-          if (!gameState.board[y][x]) {
-            results.push({ x, y });
-          }
-        }
-      }
-      return results;
-    };
-
-    const generateRandomCoordinate = () => {
-      const emptyCells = getEmptyCells();
-      if (emptyCells.length === 0) {
-        throw new Error("No empty cells");
-      }
-
-      const cellIndex = Math.floor(Math.random() * emptyCells.length);
-
-      return emptyCells[cellIndex];
-    };
-
+  const appendRandomTile = useCallback((emptyCells: Coordinate[]) => {
     dispatch({
       type: "create_tile",
       tile: {
         id: self.crypto.randomUUID(),
-        coordinate: generateRandomCoordinate(),
+        coordinate: generateRandomCoordinate(emptyCells),
         value: 1,
       },
     });
-  }, [gameState]);
-
-  const startGame = (options: GameOptions) => {
-    setStatus("playing");
-    dispatch({ type: "set_options", options });
-    appendRandomTile();
-  };
-
-  const resetGame = () => {
-    setStatus("setup");
-    dispatch({ type: "reset" });
-  };
+  }, []);
 
   const move = (direction: Direction) => {
     dispatch({ type: "move", direction });
   };
+
+  const startGame = useCallback(() => {
+    const emptyCells = getEmptyCells(gameState.board, gameState.options.size);
+    appendRandomTile(emptyCells);
+  }, [gameState.board, gameState.options.size, appendRandomTile]);
 
   /**
    * This effect is responsible to add a new tile after a game move that
@@ -104,20 +72,25 @@ export function GameEngineProvider({ children }: PropsWithChildren) {
    */
   useEffect(() => {
     if (gameState.hasChanged) {
-      appendRandomTile();
+      const emptyCells = getEmptyCells(gameState.board, gameState.options.size);
+      appendRandomTile(emptyCells);
     }
-  }, [gameState.hasChanged]);
+  }, [
+    gameState.hasChanged,
+    gameState.board,
+    gameState.options,
+    appendRandomTile,
+  ]);
 
   return (
     <GameEngineContext.Provider
       value={{
-        status,
+        board: gameState.board,
         options: gameState.options,
         hasChanged: gameState.hasChanged,
-        resetGame,
-        startGame,
         move,
         getTiles,
+        startGame,
       }}
     >
       {children}

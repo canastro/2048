@@ -1,18 +1,26 @@
 import { useContext } from "react";
 import { Board } from "./components/board/board";
-import { GameEngineContext, GameEngineProvider } from "./engine/game-engine";
+import { GameEngineProvider } from "./engine/game-engine";
 import { Setup } from "./components/setup/setup";
+import { GameOptionsContext, GameOptionsProvider } from "./engine/game-options";
 
 function GameInner() {
-  const { status, startGame, resetGame } = useContext(GameEngineContext);
+  const { options, status, startGame, resetGame } =
+    useContext(GameOptionsContext);
 
-  return status === "setup" ? <Setup onStart={startGame} /> : <Board onReset={resetGame} />;
+  return status === "setup" ? (
+    <Setup onStart={startGame} />
+  ) : (
+    <GameEngineProvider options={options}>
+      <Board onReset={resetGame} />
+    </GameEngineProvider>
+  );
 }
 
 export function Game() {
   return (
-    <GameEngineProvider>
+    <GameOptionsProvider>
       <GameInner />
-    </GameEngineProvider>
+    </GameOptionsProvider>
   );
 }
