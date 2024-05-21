@@ -47,6 +47,12 @@ interface GameEngineProviderProps {
   options: GameOptions;
 }
 
+/**
+ * The provider for the game engine context.
+ * 
+ * It is responsible to serve as a bridge between the game and the game state. It 
+ * exposes the game state and the actions to manipulate it.
+ */
 export function GameEngineProvider({
   children,
   options,
@@ -56,8 +62,14 @@ export function GameEngineProvider({
     createInitialGameState(options)
   );
 
+  /**
+   * Return all tiles in the game as a flat array.
+   */
   const getTiles = () => Object.values(gameState.tiles);
 
+  /**
+   * Create a new tile in a random empty cell.
+   */
   const appendRandomTile = useCallback((emptyCells: Coordinate[]) => {
     dispatch({
       type: "create_tile",
@@ -69,6 +81,12 @@ export function GameEngineProvider({
     });
   }, []);
 
+  /**
+   * Move the tiles in the board in the given direction.
+   * 
+   * Throttled to avoid multiple moves in a short period of time and allow the 
+   * animations to finish.
+   */
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const move = useCallback(
     throttle(
@@ -79,6 +97,9 @@ export function GameEngineProvider({
     [dispatch]
   );
 
+  /**
+   * Start the game by appending a single random tile to the board.
+   */
   const startGame = useCallback(() => {
     const emptyCells = getEmptyCells(gameState.board, gameState.options.size);
     appendRandomTile(emptyCells);
