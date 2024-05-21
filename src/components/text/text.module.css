@@ -2,10 +2,6 @@
   font-family: var(--default-font-family);
 }
 
-.text-color-muted {
-  color: var(--text-color-muted);
-}
-
 .text-color-light {
   color: var(--text-color-light);
 }

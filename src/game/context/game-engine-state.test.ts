@@ -1,39 +1,7 @@
 import { it, expect, describe } from "vitest";
 import { BoardItem } from "../models/board";
-import { createRanges, move } from "./game-state";
+import { move } from "./game-engine-state";
 import { Tile } from "../models/tile";
-
-describe("createRanges", () => {
-  it("should create a single range if all items are empty", () => {
-    const board: BoardItem[] = [
-      { type: "empty" },
-      { type: "empty" },
-      { type: "empty" },
-      { type: "empty" },
-      { type: "empty" },
-    ];
-    const ranges = createRanges(board);
-
-    expect(ranges).toEqual([[0, 4]]);
-  });
-
-  it("should create multiple range around obstacles", () => {
-    const board: BoardItem[] = [
-      { type: "obstacle" },
-      { type: "empty" },
-      { type: "obstacle" },
-      { type: "obstacle" },
-      { type: "empty" },
-      { type: "empty" },
-    ];
-    const ranges = createRanges(board);
-
-    expect(ranges).toEqual([
-      [1, 1],
-      [4, 5],
-    ]);
-  });
-});
 
 describe("move", () => {
   it("should be able to move right with obstacles", () => {

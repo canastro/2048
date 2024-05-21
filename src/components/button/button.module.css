@@ -3,7 +3,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: var(--accent-color-light);
+    background-color: var(--accent-color);
     padding-block: var(--space-3);
     padding-inline: var(--space-5);
     border-radius: var(--radius-2);
@@ -14,6 +14,6 @@
 }
 
 .root:hover {
-    background-color: var(--accent-color-dark);
-    color: var(--text-color-light);
+    background-color: var(--accent-color-contrast);
+    color: var(--text-color-contrast);
 }

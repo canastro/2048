@@ -4,7 +4,7 @@ import { Button } from "../../../components/button/button";
 import styles from "./setup.module.css";
 import { useState } from "react";
 import { MAX_NUMBER_OBSTACLES } from "../../utils/constants";
-import { GameOptions } from "../../engine/game-options";
+import { GameOptions } from "../../context/game-context";
 
 const OBSTACLES = new Array(MAX_NUMBER_OBSTACLES).fill(null).map((_, i) => ({
   label: (i + 1).toString(),
@@ -18,12 +18,13 @@ const GRID_SIZES = [
 ];
 
 interface SetupProps {
+  options: GameOptions;
   onStart: (options: GameOptions) => void;
 }
 
 export function Setup(props: SetupProps) {
-  const [nObstacles, setNObstacles] = useState<number>(0);
-  const [size, setSize] = useState<number>(6);
+  const [nObstacles, setNObstacles] = useState<number>(props.options.nObstacles);
+  const [size, setSize] = useState<number>(props.options.size);
 
   return (
     <div className={styles.root}>

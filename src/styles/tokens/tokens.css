@@ -1,6 +1,4 @@
 :root {
-  --pixel-size: 8px;
-  
   --background-color-light: #eeefe9;
   --background-color-dark: #2d2d2d;
 
@@ -9,13 +7,6 @@
 
   --text-color-dark: #111;
   --text-color-light: #f3f4ef;
-  --text-color-muted-dark: #5f5f5f;
-  --text-color-muted-light: hsla(0, 0%, 100%, 0.7);
-
-  --container-1: 448px;
-  --container-2: 688px;
-  --container-3: 880px;
-  --container-4: 1136px;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -43,9 +34,10 @@
     --background-color-contrast: var(--background-color-dark);
 
     --accent-color: var(--accent-color-light);
+    --accent-color-contrast: var(--accent-color-dark);
 
     --text-color: var(--text-color-dark);
-    --text-color-muted: var(--text-color-muted-dark);
+    --text-color-contrast: var(--text-color-light);
 
     color: var(--text-color-dark);
     
@@ -61,13 +53,12 @@
     --background-color-contrast: var(--background-color-light);
 
     --accent-color: var(--accent-color-dark);
+    --accent-color-contrast: var(--accent-color-light);
 
     --text-color: var(--text-color-light);
-    --text-color-muted: var(--text-color-muted-light);
+    --text-color-contrast: var(--text-color-dark);
 
     color: var(--text-color-light);
-
-
     
     ::selection {
       background: var(--accent-color);

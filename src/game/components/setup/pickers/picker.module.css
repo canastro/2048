@@ -12,7 +12,7 @@
 }
 
 .item {
-  background-color: var(--accent-color-light);
+  background-color: var(--accent-color);
   display: flex;
   line-height: 1;
   align-items: center;
@@ -33,17 +33,17 @@
 }
 
 .item:hover {
-  background-color: var(--accent-color-dark);
-  color: var(--text-color-light);
+  background-color: var(--accent-color-contrast);
+  color: var(--text-color-contrast);
 }
 
 .item[data-state="on"] {
-  background-color: var(--accent-color-dark);
-  color: var(--text-color-light);
+  background-color: var(--accent-color-contrast);
+  color: var(--text-color-contrast);
   font-weight: var(--font-weight-medium);
 }
 
 .item:focus {
   position: relative;
-  box-shadow: 0 0 0 1px var(--accent-color-dark);
+  box-shadow: 0 0 0 1px var(--accent-color-contrast);
 }

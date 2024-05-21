@@ -1,11 +1,23 @@
-import { createContext, useCallback, useEffect, useReducer } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+} from "react";
 import { Tile } from "../models/tile";
-import gameStateReducer, { createInitialGameState } from "./game-state";
+import gameEngineStateReducer, { createInitialGameState } from "./game-engine-state";
 import { Coordinate } from "../models/coordinate";
 import { Direction } from "../models/direction";
-import { GameOptions } from "./game-options";
-import { generateRandomCoordinate, getEmptyCells } from "../utils/position";
+import { GameOptions, GameContext } from "./game-context";
+import {
+  generateRandomCoordinate,
+  getAvailableNeighbours,
+  getEmptyCells,
+} from "../utils/board";
 import { Board } from "../models/board";
+import { throttle } from "lodash-es";
+import { MAX_RESULT, MERGE_ANIMATION_DURATION } from "../utils/constants";
 
 const DEFAULT_OPTIONS: GameOptions = {
   nObstacles: 0,
@@ -39,8 +51,8 @@ export function GameEngineProvider({
   children,
   options,
 }: GameEngineProviderProps) {
-  const [gameState, dispatch] = useReducer(
-    gameStateReducer,
+  const { finishGame } = useContext(GameContext);
+  const [gameState, dispatch] = useReducer(gameEngineStateReducer, undefined, () =>
     createInitialGameState(options)
   );
 
@@ -57,9 +69,15 @@ export function GameEngineProvider({
     });
   }, []);
 
-  const move = (direction: Direction) => {
-    dispatch({ type: "move", direction });
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const move = useCallback(
+    throttle(
+      (direction: Direction) => dispatch({ type: "move", direction }),
+      MERGE_ANIMATION_DURATION * 1.05,
+      { trailing: false }
+    ),
+    [dispatch]
+  );
 
   const startGame = useCallback(() => {
     const emptyCells = getEmptyCells(gameState.board, gameState.options.size);
@@ -67,15 +85,41 @@ export function GameEngineProvider({
   }, [gameState.board, gameState.options.size, appendRandomTile]);
 
   /**
-   * This effect is responsible to add a new tile after a game move that
-   * has produced changes in the board.
+   * This effect is responsible to check the game state and either
+   * finish the game with a victory or defeat or append a new tile
    */
   useEffect(() => {
-    if (gameState.hasChanged) {
-      const emptyCells = getEmptyCells(gameState.board, gameState.options.size);
-      appendRandomTile(emptyCells);
+    if (!gameState.hasChanged) {
+      return;
     }
+
+    const maxValue = Math.max(
+      ...Object.values(gameState.tiles).map((tile) => tile.value)
+    );
+    if (maxValue >= MAX_RESULT) {
+      finishGame("victory");
+      return;
+    }
+
+    const emptyCells = getEmptyCells(gameState.board, gameState.options.size);
+    if (emptyCells.length === 1) {
+      const emptyCell = emptyCells[0];
+      const availableNeighbours = getAvailableNeighbours(
+        gameState.board,
+        gameState.tiles,
+        emptyCell
+      );
+
+      if (availableNeighbours.length === 0) {
+        finishGame("defeat");
+        return;
+      }
+    }
+
+    appendRandomTile(emptyCells);
   }, [
+    finishGame,
+    gameState.tiles,
     gameState.hasChanged,
     gameState.board,
     gameState.options,

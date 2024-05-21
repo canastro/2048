@@ -3,7 +3,7 @@ import { Tile as ITile } from "../../models/tile";
 import styles from "./board.module.css";
 import Tile from "../tile/tile";
 import { TILE_GAP, TILE_SIZE } from "../../utils/constants";
-import { GameEngineContext } from "../../engine/game-engine";
+import { GameEngineContext } from "../../context/game-engine-context";
 import { Direction } from "../../models/direction";
 import { Button } from "../../../components/button/button";
 import { Board as IBoard } from "../../models/board";

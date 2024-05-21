@@ -1,8 +1,16 @@
+/**
+ * Tile sizes
+ */
 export const TILE_SIZE = 56;
 
 export const TILE_GAP = 4;
 
+/**
+ * Game options
+ */
 export const MAX_NUMBER_OBSTACLES = 4;
+
+export const MAX_RESULT = 2048;
 
 /**
  * Animations

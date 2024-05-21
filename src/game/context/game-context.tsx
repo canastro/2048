@@ -7,11 +7,12 @@ export interface GameOptions {
 
 type GameStatus = "setup" | "playing" | "victory" | "defeat";
 
-interface GameOptionsContextValue {
+interface GameContextValue {
   options: GameOptions;
   status: GameStatus;
   startGame: (options: GameOptions) => void;
   resetGame: () => void;
+  finishGame: (state: 'victory' | 'defeat') => void;
 }
 
 const DEFAULT_OPTIONS: GameOptions = {
@@ -19,19 +20,20 @@ const DEFAULT_OPTIONS: GameOptions = {
   size: 6,
 };
 
-export const GameOptionsContext = createContext<GameOptionsContextValue>({
+export const GameContext = createContext<GameContextValue>({
   options: DEFAULT_OPTIONS,
   status: "setup",
   startGame: () => {},
   resetGame: () => {},
+  finishGame: () => {},
 });
 
-export function GameOptionsProvider({ children }: PropsWithChildren) {
+export function GameProvider({ children }: PropsWithChildren) {
   const [status, setStatus] = useState<GameStatus>("setup");
   const [options, setOptions] = useState<GameOptions>(DEFAULT_OPTIONS);
 
   return (
-    <GameOptionsContext.Provider
+    <GameContext.Provider
       value={{
         status,
         options,
@@ -40,9 +42,10 @@ export function GameOptionsProvider({ children }: PropsWithChildren) {
           setStatus("playing");
         },
         resetGame: () => setStatus("setup"),
+        finishGame: (state) => setStatus(state),
       }}
     >
       {children}
-    </GameOptionsContext.Provider>
+    </GameContext.Provider>
   );
 }

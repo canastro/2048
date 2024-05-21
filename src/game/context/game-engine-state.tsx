@@ -2,8 +2,13 @@ import { Board, BoardItem } from "../models/board";
 import { isSameCoordinate } from "../models/coordinate";
 import { Direction } from "../models/direction";
 import { Tile } from "../models/tile";
-import { generateRandomCoordinate, getEmptyCells } from "../utils/position";
-import { GameOptions } from "./game-options";
+import {
+  cloneBoard,
+  createNewBoard,
+  createRanges,
+  getCleanBoard,
+} from "../utils/board";
+import { GameOptions } from "./game-context";
 
 type State = {
   hasChanged: boolean;
@@ -16,34 +21,6 @@ type Action =
   | { type: "create_tile"; tile: Tile }
   | { type: "move"; direction: Direction };
 
-/**
- * Create an empty board of size state.options.size x state.options.size
- * with the randomly placed obstacles.
- */
-function createNewBoard(options: GameOptions): Board {
-  const board = new Array(options.size)
-    .fill(undefined)
-    .map(() => new Array(options.size).fill({ type: "empty" }));
-
-  for (let i = 0; i < options.nObstacles; i++) {
-    const emptyCells = getEmptyCells(board, options.size);
-    const coordinate = generateRandomCoordinate(emptyCells);
-    board[coordinate.x][coordinate.y] = { type: "obstacle" };
-  }
-
-  return board;
-}
-
-/**
- * Generates a clean board keeping the existing obstacles.
- */
-const getCleanBoard = (board: Board): Board => {
-  const newBoard = clone(board);
-  return newBoard.map((row) =>
-    row.map((item) => (item.type === "tile" ? { type: "empty" } : item))
-  );
-};
-
 export const createInitialGameState = (options: GameOptions): State => ({
   options,
   hasChanged: false,
@@ -51,9 +28,18 @@ export const createInitialGameState = (options: GameOptions): State => ({
   tiles: {},
 });
 
-const clone = (board: Board): Board => JSON.parse(JSON.stringify(board));
-
-const _move = (
+/**
+ * Core function for the movement of tiles in 2048.
+ *
+ * @param tiles The current tiles on the board.
+ * @param data - subset of the board where the tiles can move freely.
+ * @param options - The options for the movement.
+ * @param options.offset - The offset of the data in the current col/row of the board
+ * @param options.direction - The direction of the movement.
+ * @param options.axis - The axis of the movement.
+ * @returns A tuple with a boolean indicating if the board has changed and the new tiles.
+ */
+const moveTileWithinRange = (
   tiles: Record<string, Tile>,
   data: BoardItem[],
   options: { offset: number; direction: "start" | "end"; axis: "x" | "y" }
@@ -104,33 +90,11 @@ const _move = (
     }
 
     // update aux data for next iteration
-    previousTile =  updatedTiles[tileId];
+    previousTile = updatedTiles[tileId];
     currentOpenPosition += increment;
   });
 
   return [hasChanged, updatedTiles] as const;
-};
-
-export const createRanges = (data: BoardItem[]) => {
-  const ranges: [number, number][] = [];
-  for (let i = 0; i < data.length; i++) {
-    const currentItem = data[i];
-    if (currentItem.type === "obstacle") {
-      continue;
-    }
-
-    ranges.push([i, i]);
-
-    for (let j = i + 1; j < data.length; j++) {
-      i = j;
-      if (data[j].type === "obstacle") {
-        break;
-      }
-
-      ranges[ranges.length - 1][1] = j;
-    }
-  }
-  return ranges;
 };
 
 /**
@@ -146,10 +110,11 @@ export const move = (
   let newTiles: Record<string, Tile> = {};
   let hasChanged = false;
   ranges.forEach(([start, end]) => {
-    const [changed, updatedTiles] = _move(tiles, data.slice(start, end + 1), {
-      ...options,
-      offset: start,
-    });
+    const [changed, updatedTiles] = moveTileWithinRange(
+      tiles,
+      data.slice(start, end + 1),
+      { ...options, offset: start }
+    );
     hasChanged = hasChanged || changed;
     newTiles = { ...newTiles, ...updatedTiles };
   });
@@ -165,7 +130,7 @@ export const updateBoard = (
   previousTiles: Record<string, Tile>,
   tiles: Record<string, Tile>
 ) => {
-  const newBoard = clone(board);
+  const newBoard = cloneBoard(board);
   Object.values(tiles).forEach((tile) => {
     const currentBoardItem = newBoard[tile.coordinate.y][tile.coordinate.x];
     const currentTile =
@@ -237,11 +202,11 @@ const moveHorizontally = (
   };
 };
 
-export default function gameStateReducer(state: State, action: Action) {
+export default function gameEngineStateReducer(state: State, action: Action) {
   switch (action.type) {
     case "create_tile": {
       const { id, coordinate } = action.tile;
-      const newBoard = clone(state.board);
+      const newBoard = cloneBoard(state.board);
       newBoard[coordinate.y][coordinate.x] = { type: "tile", id };
 
       return {

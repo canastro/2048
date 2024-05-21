@@ -9,7 +9,7 @@ interface Props {
   class?: string;
   weight?: "light" | "regular" | "medium" | "bold";
   style?: "normal" | "italic";
-  color?: "default" | "muted" | "light";
+  color?: "default" | "light";
 }
 
 export function Text(props: PropsWithChildren<Props>) {
