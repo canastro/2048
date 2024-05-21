@@ -14,10 +14,9 @@ To move blocks we break the board into ranges where the tiles are free to move, 
 
 ## A few future improvements
 1. Cleanup unnecessary tiles after movement - the record of tiles is holding to the tiles for longer than necessary
-2. Support mobile interaction via touch events
-3. Responsive layout - right now the size of tiles is fixed
-4. Improve logic to trigger defeat - if we start a 4x4 grid with 15 obstacles, we're not able to tell the user they lost because we only check for defeat after a movement. 
-5. Way more tests!
-6. Better colors for dark mode.
+2. Responsive layout - right now the size of tiles is fixed
+3. Improve logic to trigger defeat - if we start a 4x4 grid with 15 obstacles, we're not able to tell the user they lost because we only check for defeat after a movement. 
+4. Way more tests!
+5. Better colors for dark mode.
 6. Better obstacle asset
 7. Add proper linting and formatting tools.

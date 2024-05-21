@@ -9,6 +9,7 @@ import { Button } from "../../../components/button/button";
 import { Board as IBoard } from "../../models/board";
 import { EmptyTile } from "./empty-tile/empty-tile";
 import ObstacleTile from "./obstacle-tile/obstacle-tile";
+import PointerTracker, { SwipeInput } from "./pointer-tracker";
 
 interface BoardProps {
   onReset: () => void;
@@ -69,6 +70,25 @@ export function Board(props: BoardProps) {
     return tilesSize + gapSize;
   }, [options.size]);
 
+  const handleSwipe = useCallback(
+    ({ deltaX, deltaY }: SwipeInput) => {
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX > 0) {
+          move(Direction.Right);
+        } else {
+          move(Direction.Left);
+        }
+      } else {
+        if (deltaY > 0) {
+          move(Direction.Down);
+        } else {
+          move(Direction.Up);
+        }
+      }
+    },
+    [move]
+  );
+
   /**
    * Handle the user's keyboard input to move the tiles.
    */
@@ -111,20 +131,22 @@ export function Board(props: BoardProps) {
   };
 
   return (
-    <div className={styles.root}>
-      <div className={styles.board} style={boardStyle}>
-        <div className={styles.tiles}>
-          <Tiles />
+    <PointerTracker onSwipe={handleSwipe}>
+      <div className={styles.root}>
+        <div className={styles.board} style={boardStyle}>
+          <div className={styles.tiles}>
+            <Tiles />
+          </div>
+
+          <div className={styles.grid}>
+            <Grid board={board} />
+          </div>
         </div>
 
-        <div className={styles.grid}>
-          <Grid board={board} />
-        </div>
+        <Button type="button" onClick={props.onReset}>
+          Reset
+        </Button>
       </div>
-
-      <Button type="button" onClick={props.onReset}>
-        Reset
-      </Button>
-    </div>
+    </PointerTracker>
   );
 }
