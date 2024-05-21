@@ -13,6 +13,7 @@
 
 .item {
   background-color: var(--accent-color);
+  color: var(--text-color);
   display: flex;
   line-height: 1;
   align-items: center;

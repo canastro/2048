@@ -131,8 +131,8 @@ export function Board(props: BoardProps) {
   };
 
   return (
-    <PointerTracker onSwipe={handleSwipe}>
-      <div className={styles.root}>
+    <div className={styles.root}>
+      <PointerTracker onSwipe={handleSwipe}>
         <div className={styles.board} style={boardStyle}>
           <div className={styles.tiles}>
             <Tiles />
@@ -142,11 +142,11 @@ export function Board(props: BoardProps) {
             <Grid board={board} />
           </div>
         </div>
+      </PointerTracker>
 
-        <Button type="button" onClick={props.onReset}>
-          Reset
-        </Button>
-      </div>
-    </PointerTracker>
+      <Button type="button" onClick={props.onReset}>
+        Reset
+      </Button>
+    </div>
   );
 }
