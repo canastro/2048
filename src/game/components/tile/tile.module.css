@@ -1,17 +1,4 @@
 .tile {
-  --color-1: rgb(160, 170, 159);
-  --color-2: rgb(165, 175, 159);
-  --color-4: rgb(170, 175, 159);
-  --color-8: rgb(175, 180, 159);
-  --color-16: rgb(180, 180, 159);
-  --color-32: rgb(190, 190, 160);
-  --color-64: rgb(200, 190, 159);
-  --color-128: rgb(210, 200, 159);
-  --color-256: rgb(210, 205, 159);
-  --color-512: rgb(160, 169, 159);
-  --color-1024: rgb(160, 169, 159);
-  --color-2048: #4bbc8e;
-
   position: absolute;
   inline-size: 56px;
   block-size: 56px;

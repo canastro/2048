@@ -1,9 +1,12 @@
 .tile {
-  background-color: var(--accent-color-light);
   border-radius: var(--radius-1);
-  background: red;
+  background: var(--color-obstacle);
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
+
+  color: white;
+
+  padding: var(--space-2);
 }
