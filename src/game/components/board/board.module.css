@@ -13,9 +13,9 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(var(--size), 56px);
-  grid-template-rows: repeat(var(--size), 56px);
-  gap: 4px;
+  grid-template-columns: repeat(var(--grid-size), var(--tile-size));
+  grid-template-rows: repeat(var(--grid-size), var(--tile-size));
+  gap: var(--tile-gap);
 }
 
 .tiles {

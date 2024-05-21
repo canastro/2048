@@ -18,6 +18,9 @@ interface GridProps {
   board: IBoard;
 }
 
+/**
+ * Render the board grid (empty and obstacles tiles).
+ */
 function Grid(props: GridProps) {
   const flatBoard = props.board.flat();
 
@@ -30,6 +33,9 @@ function Grid(props: GridProps) {
   );
 }
 
+/**
+ * Render the tiles of the game.
+ */
 function Tiles() {
   const { getTiles } = useContext(GameEngineContext);
   const tiles = getTiles();
@@ -37,6 +43,10 @@ function Tiles() {
   return tiles.map((tile: ITile) => <Tile key={tile.id} tile={tile} />);
 }
 
+/**
+ * Entry point of the actual game after the Setup screen.
+ * Responsible to render the state of the game and react to user's input.
+ */
 export function Board(props: BoardProps) {
   const initialized = useRef(false);
 
@@ -49,12 +59,19 @@ export function Board(props: BoardProps) {
     }
   }, [startGame]);
 
+  /**
+   * Calculate the size of the board in px based on the number of tiles
+   * and their hardcoded size.
+   */
   const boardSize = useMemo(() => {
     const tilesSize = options.size * TILE_SIZE;
     const gapSize = (options.size - 1) * TILE_GAP;
     return tilesSize + gapSize;
   }, [options.size]);
 
+  /**
+   * Handle the user's keyboard input to move the tiles.
+   */
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       e.preventDefault();
@@ -88,7 +105,9 @@ export function Board(props: BoardProps) {
   const boardStyle = {
     inlineSize: boardSize,
     blockSize: boardSize,
-    "--size": options.size,
+    "--grid-size": options.size,
+    "--tile-size": `${TILE_SIZE}px`,
+    "--tile-gap": `${TILE_GAP}px`,
   };
 
   return (

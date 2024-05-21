@@ -3,7 +3,10 @@ import { Heading } from "../../../components/heading/heading";
 import { Text } from "../../../components/text/text";
 
 import styles from "./finish.module.css";
-
+/**
+ * Display the Defeat screen.
+ * Allow the user to reset the game.
+ */
 export function Defeat(props: { onReset: () => void }) {
   return (
     <div className={styles.root}>

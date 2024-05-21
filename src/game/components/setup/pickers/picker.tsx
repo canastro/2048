@@ -7,6 +7,9 @@ interface PickerProps {
   onChange: (value: number) => void;
 }
 
+/**
+ * Allow the user to pick one from a list of options.
+ */
 export const Picker = (props: PickerProps) => {
   function handleChange(value: string) {
     props.onChange(parseInt(value, 10));

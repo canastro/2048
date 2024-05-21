@@ -22,6 +22,10 @@ interface SetupProps {
   onStart: (options: GameOptions) => void;
 }
 
+/**
+ * Setup phase of our game.
+ * Here the user will choose the game options and start the game.
+ */
 export function Setup(props: SetupProps) {
   const [nObstacles, setNObstacles] = useState<number>(props.options.nObstacles);
   const [size, setSize] = useState<number>(props.options.size);
